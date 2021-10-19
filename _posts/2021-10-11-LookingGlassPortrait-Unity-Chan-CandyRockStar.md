@@ -6,11 +6,9 @@ layout: post
 title: "ユニティちゃんライブステージ - Candy Rock Star - をLooking Glass Portraitで動かす"
 ---
 
-** 書いてる途中です **
-
 まずこちらをご覧ください。
 
-https://youtu.be/BUS1tvsb96U
+[ユニティちゃんライブステージ Looking Glass Portrait版](https://youtu.be/BUS1tvsb96U)
 
 これはLooking Glass Portraitでユニティちゃんライブステージ、
 またはCandy Rock Star(CRS)として知られるアプリを実行した時の映像です。
@@ -49,7 +47,7 @@ sizeというパラメータによって大きさが変化します。
 
 ## CameraSwitcherを改造する
 
-```C#
+```csharp
 using System.Collections;
 using LookingGlass;
 
