@@ -21,7 +21,7 @@ https://youtu.be/BUS1tvsb96U
 
 先にLooking Glassに写すためのカメラとなるHoloplay Captureについて解説します。
 
-** なんかすごい図 **
+![Unity上のHoloplay Capture表示](/assets/images/crs_lkg/unity_holoplay_capture.png)
 
 Holoplay Captureはピラミッドのてっぺんを切り落としたような見た目をしています。
 面が小さいほうから順に*near clip*、*focal plane*、*far clip*と呼びます。
@@ -180,5 +180,72 @@ Holoplay Captureはシーンに1つだけ存在できます。
 詳細については公式のドキュメントをご覧ください。
 
 https://docs.lookingglassfactory.com/developer-tools/unity/scripts/holoplay
+
+## 改造したスクリプトをMain Camera Rigにくっつける
+
+次に改造してできた`HoloPlaySwitcher`を`Assets/UnityChanStage/Prefabs/`にある`Main Camera Rig`プリファブにくっつけます。
+
+![HoloplaySwitcherをくっつける位置](/assets/images/crs_lkg/unity_main_camera_rig_position.png)
+
+この位置にくっつけます。上部にある`Camera Switcher`以下のスクリプト等は全て無効化してください。
+
+くっつけたスクリプトの設定は上部にあった`Camera Switcher`の設定をコピペします。
+
+![HoloPlay Switcherの設定](/assets/images/crs_lkg/unity_holoplay_switcher_setting.png)
+
+FoVカーブの設定は何らかのスクリプトを探してコピーするのが手っ取り早いと思います。
+sizeカーブのほうは試行錯誤で設定していくことになります。
+
+`Camera Switcher`以下を全て無効にしている場合、オーディオリスナーをくっつけておきましょう。
+
+## ユニティちゃんのカメラターゲットを移動する
+
+元々のCRSではカメラの視点はユニティちゃんの身体がうまいこと写るような位置に設定されていましたが、
+Looking Glassの場合、Holoplay Captureの位置に焦点が合う都合上、顔に焦点が当たるようにすると良い感じになります。
+
+`/Assets/UnityChan/Prefabs/CandyRockStar`プリファブを開いてください。
+
+目のちょっと下あたりに`Camera Target`を移動します。
+このオブジェクトにLooking Glassの位置が移動するようになります。
+
+![Camera Targetの位置](/assets/images/crs_lkg/unity_camera_target.png)
+
+このあたりは試行錯誤すると良いと思います。
+
+## Holoplay Captureを設置する
+
+最後にHoloplay Captureをメインシーン(`Main`)に設置します。
+
+![Holoplay CaptureをMainに置く](/assets/images/crs_lkg/unity_holoplay_capture_position.png)
+
+設定は初期値でいいと思いますが、
+`Far Clip Factor`と`Near Clip Factor`は割と重要なので試行錯誤しながら設定しましょう。
+
+![Holoplay Captureの設定](/assets/images/crs_lkg/unity_holoplay_capture_setting.png)
+
+## 完成！
+
+これで完成です。
+`Toggle Preview`してから再生するとLooking Glassに表示されると思います。
+Scene画面に切りかえると何をしているのかよくわかると思います。
+
+# まとめ
+
+比較的簡単な改造でLooking Glassにユニティちゃんのステージを写すことが出来ました。
+
+今回はCRS全体の構造をほぼ理解しないで改造しましたが、
+本来ならもう少しデバイスに合わせた改造が出来るかと思います。
+どなたか挑戦してみてください。
+
+# 参考文献
+
+- https://tsubakit1.hateblo.jp/entry/2014/11/09/235348
+- https://github.com/unity3d-jp/unitychan-crs/wiki
+
+# ライセンス
+
+この文書は"ユニティちゃんライセンス"でライセンスされます。 ©UTJ/UCL
+
+https://unity-chan.com/contents/license_jp/
 
 
