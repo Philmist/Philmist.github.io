@@ -28,6 +28,9 @@ theme: minima
 plugins:
   - jekyll-feed
 
+kramdown:
+  remove_line_breaks_for_cjk: true
+
 future: true
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
