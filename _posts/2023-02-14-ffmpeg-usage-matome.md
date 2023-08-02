@@ -112,6 +112,53 @@ crop=w=(出力幅):h=(出力高さ):x=(切りだすX座標,左が0):y=(切りだ
 
 ---
 
+# 音声を聞きとりやすい音量にする
+
+[ニコラボの"ffmpegで聞き取りやすい音量に変えるdynaudnorm"](https://nico-lab.net/normalize_audio_with_ffmpeg/)
+が非常にわかりやすいです。
+
+ここでは実際の使用例だけ載せておきます。
+
+```
+ffmpeg -f lavfi -i color=s=1280x720:c=black -i .\aduio.m4a -i .\sub.srt -map 0 -map 1 -map 2 -metadata:s:s:0 language=jpn -c:v libx264 -filter:a dynaudnorm -c:a aac -c:s srt -shortest .\result.mkv
+```
+
+# 字幕をつける(ソフトサブ:mkv)
+
+動画の字幕ファイルが別に用意してある場合、
+matroska video(.mkv)形式にするとその字幕を1つのファイルにまとめることが出来ます。
+このようにすることで対応したプレイヤーでは別に字幕ファイルを読まずにすみます。
+ちなみに新しく字幕を自分で作る場合はsrt(SubRip)形式が簡単でおすすめです。
+
+```
+ffmpeg -i input.mp4 -i sub.srt -map 0:v -map 0:a -map 1 -c:v copy -c:s srt subbed.mkv
+```
+
+字幕は複数埋めこむことも出来ます。
+この場合、それぞれの字幕にメタデータをつけておくと再生する際に混乱せずにすみます。
+
+```ps1
+ffmpeg -i input.mp4 -i eng.srt -i jpn.srt -map 0:v -map 0:a -map 1 -map 2 `
+  -metadata:s:s:0 language=eng -metadata:s:s:0 title="English" `
+  -metadata:s:s:1 language=jpn -metadata=s:s:1 title="Japanese"
+```
+
+ここのメタデータを注入する際の記述について少しだけ解説します。
+
+メタデータはファイル全体、あるいはストリームごと、チャプターごとなどいくつかの単位で埋めこむことが出来ます。
+ファイル全体に対してのメタデータの場合は`-metadata:g`を使い、
+ストリームに対しては`-metadata:s`を使います。
+
+ストリームに対して使う場合はどのストリームに対してメタデータを埋めこむかを指定しないといけないので、
+`-map`で使うようなストリーム指定を後に続けなければなりません。
+先の例だと`-metadata:s:s:0`は字幕ストリームで一番最初(0番目)のストリーム(`s:0`)を指定していることになります。
+
+この項は
+"[FFmpegで動画に字幕・副音声を追加する](https://dev.classmethod.jp/articles/add-audio-and-subtitle-to-video-with-ffmpeg/)"
+を参考にしました。
+
+---
+
 # ハードウェアエンコード(nvidia)
 
 nvidiaのハードウェアエンコードで多くのビデオカードでサポートされているのは
