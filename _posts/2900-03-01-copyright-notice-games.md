@@ -15,7 +15,7 @@ title: "ゲーム等の配信に必要な著作権表示一覧"
 
 https://support.jp.square-enix.com/rule.php?id=5381&la=0&tag=authc
 ```
-(C) SQUARE ENIX CO., LTD. All Rights Reserved.
+© SQUARE ENIX
 ```
 
 ## BORDER BREAK
