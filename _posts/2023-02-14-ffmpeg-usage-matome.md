@@ -14,6 +14,8 @@ title: "ffmpegオプション個人的まとめ"
 
 # 入力の指定とか初めの色々
 
+ほとんどのことは[ニコラボ](https://nico-lab.net/about-ffmpeg/)に載ってますが一応。
+
 ffmpegは指定された順番に入力を割りあてます。ファイルを入力に指定したい場合は以下の通り。
 `()`はオプション、`|`はどちらかを指定です。
 
@@ -120,8 +122,27 @@ crop=w=(出力幅):h=(出力高さ):x=(切りだすX座標,左が0):y=(切りだ
 ここでは実際の使用例だけ載せておきます。
 
 ```
-ffmpeg -f lavfi -i color=s=1280x720:c=black -i .\aduio.m4a -i .\sub.srt -map 0 -map 1 -map 2 -metadata:s:s:0 language=jpn -c:v libx264 -filter:a dynaudnorm -c:a aac -c:s srt -shortest .\result.mkv
+ffmpeg -f lavfi -i color=s=1280x720:c=black -i .\audio.m4a -map 0 -map 1 -c:v libx264 -filter:a dynaudnorm -c:a aac -shortest .\result.mkv
 ```
+
+# 音声からノイズを除去する
+
+ローパスフィルタを使うなどの様々な方法が存在しますが、
+現状で一番手っ取り早そうなのが機械学習を用いたモデルを使う方法です。
+
+参考記事として[日本語の記事](https://zenn.dev/kometan/articles/bfb058afe97b7c)と
+[参照されている英語の記事](https://www.amirsharif.com/using-ffmpeg-to-reduce-background-noise/)、
+そして[StackExchangeの回答](https://superuser.com/questions/733061/reduce-background-noise-and-optimize-the-speech-from-an-audio-clip-using-ffmpeg/1393535#1393535)を
+挙げておきます。
+
+基本的な使用方法は以下の通りです。
+事前に[GitHubでモデルを配布しているページ](https://github.com/GregorR/rnnoise-models)から必要なファイルをダウンロードしておいてください。
+エンコードするファイルと同じディレクトリにあるものと仮定します。
+
+```ps1
+ffmpeg -i video.mp4 -c:v copy -af 'arnndn=m=./cb.rnnn' -c:a aac -b:a 128k out.mp4
+```
+
 
 # 字幕をつける(ソフトサブ:mkv)
 
@@ -140,7 +161,8 @@ ffmpeg -i input.mp4 -i sub.srt -map 0:v -map 0:a -map 1 -c:v copy -c:s srt subbe
 ```ps1
 ffmpeg -i input.mp4 -i eng.srt -i jpn.srt -map 0:v -map 0:a -map 1 -map 2 `
   -metadata:s:s:0 language=eng -metadata:s:s:0 title="English" `
-  -metadata:s:s:1 language=jpn -metadata=s:s:1 title="Japanese"
+  -metadata:s:s:1 language=jpn -metadata=s:s:1 title="Japanese" `
+  out.mkv
 ```
 
 ここのメタデータを注入する際の記述について少しだけ解説します。
@@ -156,6 +178,26 @@ ffmpeg -i input.mp4 -i eng.srt -i jpn.srt -map 0:v -map 0:a -map 1 -map 2 `
 この項は
 "[FFmpegで動画に字幕・副音声を追加する](https://dev.classmethod.jp/articles/add-audio-and-subtitle-to-video-with-ffmpeg/)"
 を参考にしました。
+
+# dispositionオプションでmkvのデフォルトのトラックを指定する
+
+mkv(Matroska)ファイルは複数の映像/音声/字幕トラックを指定できる都合上、
+デフォルトでどのトラックを再生するかという情報が重要になることがあります。
+この時、元ファイルからそのまま映像等をコピーすると
+そのトラックがデフォルトであるという情報まで同時にコピーされます。
+
+他のトラックをデフォルトにしたい場合はデフォルトであるという情報を消さなければなりません。
+それらを操作するために`-disposition`オプションを使用します。
+[FFmpegのドキュメントの該当部分](https://ffmpeg.org/ffmpeg.html#Main-options)も参照してください。
+
+```ps1
+ffmpeg -i video.mp4 -i audio.wav -map 0:v -map 1 -map 0:a -c:v copy -c:a:0 aac -c:a:1 copy `
+    -disposition:a:0 default `
+    -disposition:a:1 0 `
+    out.mkv
+```
+
+なお後からmkvを調整したいだけなら[mkvpropedit](https://mkvtoolnix.download/doc/mkvpropedit.html)を使ったほうが良いです。
 
 ---
 
@@ -177,4 +219,48 @@ libx264で使える`-crf`は使えません。代わりに`-cq`を使う必要�
 デフォルトでは画質を抑える設定になっているので、
 必要に応じて`-preset`の値を変えたり(`p4`から`p6`にするとか)、
 `-profile`の値を変えたり(`main`から`high`にするとか)しましょう。
+
+# AV1エンコード(SVT-AV1)
+
+映像をアーカイブとして保存したい場合、
+H.264よりも圧縮効率のよい映像コーデックにしたいことがあります。
+この時候補として挙がるのがAV1です。
+
+AV1は効率が良いコーデックですがエンコードが重いという重大な難点があります。
+一部のGPUではAV1のエンコードに対応していますが
+GPUエンコードは残念ながらCPUエンコードに比べて品質が落ちる場合が多々あります。
+
+ffmpegでAV1エンコードを行う場合、最も有用と思われるのがSVT-AV1(`libsvtav1`)です。
+エンコード時間も許容できる範囲におさまることが多く、
+その設定もかなり幅広くいじれるようになっています。
+
+[FFmpeg wikiの該当部分](https://trac.ffmpeg.org/wiki/Encode/AV1#SVT-AV1)にほとんど書いてありますが、
+基本的なエンコード方法は以下の通りです。
+
+```ps1
+ffmpeg -i input.mp4 -c:v libsvtav1 -crf 35 -preset 8 -c:a copy out.mkv
+```
+
+CRFは0から63の範囲で指定できて0が一番画質が良く63が一番画質が悪くなります。
+同時に低ければ低いほどファイルサイズは大きくなり高ければ高いほど小さくなります。
+デフォルト値は30ですが38程度だとバランスが良いようです。
+
+Presetは0から13までの範囲を取り高ければ高いほどエンコード速度が速くなります。
+しかし13はデバッグ用なので実用的には8から10程度になるでしょう。
+
+H.264にある`-fastdecode`オプションはSVT-AV1だと`-svtav1-params fast-decode=1`で使用できます。
+しかしこのオプションを指定する場合はPresetが5から10までの値に制限されるようです。
+
+なお前述の文書では1080pや720pの映像にはAV1はあまり適していないみたいなことが書いてありますが、
+HEVC(H.265)でのエンコードについては記述しないでおきます。
+
+# ビットレート指定メモ
+
+[どういう場合にどのビットレート指定をすればいいかを書いた文書](https://slhck.info/video/2017/03/01/rate-control.html)が
+あるのでここにメモしておきます。
+雑に要約すると以下の通りです。
+
+- ストリーミング用途にはConstrained Encoding(VBV)を使う
+    - `ffmpeg -i input -c:v libx264 -crf 23 -maxrate 1M -bufsize 2M output`(改変引用)
+- 保存用途にはConstant Rate Factor(CRF)を使う
 
