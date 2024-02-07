@@ -47,6 +47,15 @@ https://p.eagate.573.jp/game/eacbg/bg/info/guideline.html
 ©Konami Amusement ©Konami Digital Entertainment
 ```
 
+## FOAMSTARS
+
+https://www.jp.square-enix.com/foamstars/jp/guideline/
+```
+© SQUARE ENIX
+記載されている会社名・製品名・システム名などは、各社の商標、または登録商標です。
+```
+ちなみに開発はToylogic
+
 # 素材
 
 ## ニジエたん3D
