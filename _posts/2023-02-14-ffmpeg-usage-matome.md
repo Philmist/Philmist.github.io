@@ -102,17 +102,40 @@ crop=w=(出力幅):h=(出力高さ):x=(切りだすX座標,左が0):y=(切りだ
 
 他にも[ffmpeg wikiの解説](https://trac.ffmpeg.org/wiki/Concatenate)を見ると様々な例が載っています。
 
----
-
-以下あとから書きます。
-
 # クロスフェード
 
-# 矩形を重ねる
+解説書きたいと思ったけど全然使ってないので、今使ってるスクリプトを載せてお茶を濁しておきます。
+
+* [自分で使ってるクロスフェードでつなぐスクリプト](https://gist.github.com/Philmist/3a0229d567de85fb72951cf8c4b64190)
 
 # 曲名スクロールしながら流す
 
----
+さきに実際に使っているコマンドから。前提条件として`\temp_files\foobar_nowplaying.txt`に現在再生している曲名が入っています。
+
+```ps1
+ffmpeg -f lavfi -i 'color=c=black:r=15:s=640x64' -f dshow -i 'audio=CABLE-B Output (VB-Audio Cable B)' -filter_complex "[0]drawtext=fontfile='\\Windows\\fonts\\meiryob.ttc':textfile='\\temp_files\\foobar_nowplaying.txt':reload=1:fontsize=(h/2.2):y=0:x=w-mod(n*6\,w+tw):y=(h-th)/2:fontcolor=white" -c:v libsvtav1 -crf 35 -c:a aac -b:a 128k -f matroska http://192.168.0.100:8080/stream.mkv
+```
+
+これは[ニコラボの"文字を描写するDRAWTEXT"](https://nico-lab.net/drawtext_with_ffmpeg/)から着想を得ました。文字を描写するフィルタの重要な部分だけ抜きだします。`\`はエスケープ文字です。
+
+```
+drawtext=textfile='\\temp_files\\foobar_nowplaying.txt':reload=1:fontsize=(h/2.2):y=0:x=w-mod(n*6\,w+tw):y=(h-th)/2:fontcolor=white
+```
+
+ここで重要なのは`x=w-mod(n*6,w+tw)`です。
+
+[drawtextのドキュメント](https://ffmpeg.org/ffmpeg-filters.html#drawtext)を読めばわかる通り、`tw`は`text_w`と同じ意味でレンダリングされるテキストの幅になります。`n`は開始時からのフレーム数です。`mod(a, b)`は`a`を`b`で割った余りを求める関数なので通常のプログラミング言語と同じ書き方をするなら`(w+tw) % (n*6)`のようになるでしょうか。
+
+例えば動画の幅が100px、文字の描画幅が合計で200pxだとしましょう。すると先の式は`mod(n*6, 300)`になります。`n`をいろいろ変えて書きだしてみましょう。
+
+1. n = 10 -> mod(60, 300) = 60
+1. n = 20 -> mod(120, 300) = 120
+1. n = 50 -> mod(300, 300) = 0
+1. n = 60 -> mod(360, 300) = 60
+1. n = 70 -> mod(420, 300) = 120
+1. n = 100 -> mod(600, 300) = 0
+
+つまり50フレームごとに0になるということですね。そこで描画位置を見てみると`x=w-mod(n*6,w+tw)`なので描画領域の右端(`x=w`)から徐々に左へ動いていくようになっています(描画位置は負の値でもかまいません)。`mod`の部分がループする直前の`n = 49`で見てみると`x=w-294`となってこれはさらに`w`を入れてみると`x=100-294`になります。完全に左側へ消えませんが許容できるのではないでしょうか。
 
 # 音声を聞きとりやすい音量にする
 
@@ -142,7 +165,6 @@ ffmpeg -f lavfi -i color=s=1280x720:c=black -i .\audio.m4a -map 0 -map 1 -c:v li
 ```ps1
 ffmpeg -i video.mp4 -c:v copy -af 'arnndn=m=./cb.rnnn' -c:a aac -b:a 128k out.mp4
 ```
-
 
 # 字幕をつける(ソフトサブ:mkv)
 
@@ -198,8 +220,6 @@ ffmpeg -i video.mp4 -i audio.wav -map 0:v -map 1 -map 0:a -c:v copy -c:a:0 aac -
 ```
 
 なお後からmkvを調整したいだけなら[mkvpropedit](https://mkvtoolnix.download/doc/mkvpropedit.html)を使ったほうが良いです。
-
----
 
 # ハードウェアエンコード(nvidia)
 
@@ -263,4 +283,12 @@ HEVC(H.265)でのエンコードについては記述しないでおきます。
 - ストリーミング用途にはConstrained Encoding(VBV)を使う
     - `ffmpeg -i input -c:v libx264 -crf 23 -maxrate 1M -bufsize 2M output`(改変引用)
 - 保存用途にはConstant Rate Factor(CRF)を使う
+
+---
+
+以下あとから書きます。
+
+# 矩形を重ねる
+
+---
 
