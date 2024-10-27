@@ -64,7 +64,7 @@ ffmpeg -i test.mkv -filter_complex "[0:v]setpts=PTS/2[v];[0:a]atempo=2[a]" -map 
 
 PTSは現在のフレーム数なのでPTSがそれぞれ2分の1になるということは結果として2倍速になります。
 
-逆に2分の1のスローモーションにしたい場合は以下の通り。`atempo`は0.5から2.0までの値しか取れないので注意が必要です。
+逆に2分の1のスローモーションにしたい場合は以下の通り。`atempo`は0.5から~~2.0~~100.0までの値しか取れないので注意が必要です。
 
 ```ps1
 ffmpeg -i test.mkv -filter_complex "[0:v]setpts=PTS*2[v];[0:a]atempo=0.5[a]" -map [v] -map [a] output.mkv
