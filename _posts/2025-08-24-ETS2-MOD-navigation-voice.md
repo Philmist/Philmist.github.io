@@ -4,6 +4,7 @@
 
 layout: post
 title: "ETS2用のナビゲーションボイス作成方法まとめ"
+toc: true
 ---
 
 **まだ書きかけです**
@@ -109,7 +110,8 @@ FMODのイベント(event)を使用して呼びだされます。
 
 ## MOD作成ステップバイステップ
 
-今回のMOD作成で使用したボイスを用意しておきました。
+実際にMOD作成で使用したボイスを用意しておきました。
+クレジットせずに必要に応じてご利用ください。
 
 * [ボイスのZIPファイル](/assets/ETS2_MOD_AnneliVoices.zip)
 
@@ -123,13 +125,32 @@ FMODのイベント(event)を使用して呼びだされます。
 
 ### STEP 4: ビルドして必要なファイルを作る
 
-### STEP 5: 開発中のナビMODを入れる環境を整備する
+### STEP 5: 開発中のナビMODをETS2で使えるようにする
 
 ### ENJOY!
+
+### ありがちなトラブル
+
+とりあえず何をするにもまずはETS2で開発者用コンソールを出せるように設定してください。
+たとえばマイドキュメントの中にある`Euro Truck Simulator 2/steam_profiles/XXX/controls.sii`(XXXはランダムな文字列)の
+`mix console`が含まれる部分を以下のように変更するとかです。
+
+```
+mix console `modifier(no_modifier, keyboard.equal?0)`
+```
+
+#### `manifest.sii`が含まれていない/正しくない
+
+#### mod内のファイル名が間違っている/siiファイルでの指定が正しくない
+
+#### bankの中に必要なeventが足りていない/フォルダの中にETS2から呼ばれるeventを入れている
+
+#### (zipファイルにまとめた場合)解凍した時に出てくるものがフォルダだけである
 
 # FMOD Studioでの音の出し方いろいろ
 
 ここではFMOD Studioでの音の出し方にどういう手法があるかを記していきます。
+手法がわかればナビボイスの台本にも幅が出るかと思います。
 
 ## 手法解説のその前にあらためて
 
@@ -142,16 +163,119 @@ actionは細かい時間の制御が効かないかわりに
 
 timelineは音声などを切ったりするなどの加工が出来て柔軟な音出しが可能です。
 ただしこちらは時間が不定であるようなeventは作れません。
+必ずできうる限りで最長の長さになります。
+
+音の基本的な単位はinstrumentと言いいくつかの種類がありますが、
+ここでは以下の種類を使います。
+
++ Single Instrument: 1つの音を割り当てその音だけを発声する
++ Multi Instrument: 複数の音を割り当てランダムにどれかの音を発声する
++ Event Instrument: 他のeventを参照してそれを発声する
++ Silence Instrument: 単純な無音で長さは0msから指定可能
+
+詳しい説明については[FMOD StudioのInstrument解説ページ][fmod-studio-instrument]を参照してください。
+
+他にゲームで使用した方の記事もありますので少々古い記事ですが参考までに紹介しておきます。
+
++ [FMODをつかってインタラクティブミュージック(1) オーサリング編](https://qiita.com/dTAT/items/8cf855ada87cae88f6ff)
 
 ## 複数音声の単純なつなぎあわせ
 
+やり方は2つあります。
+
+### actionでInstrumentを並べる
+
+![Actionの中でSingle Instrumentを並べている画像](/assets/images/ets2-nav-voicemod/single-instrument-consecutive.png)
+
+これは単純なSingle Instrumentを並べただけのactionです。
+右上のドロップダウンリストが**Consecutive**になっているのを確認してください。
+これだけで上から順々に音を出してくれます。
+
+並べるInstrumentはSingle Instrument以外にも使えます。
+その場合のInstrumentの1つの長さはInstrumentが実際に発声される長さになります。
+
+### timelineでInstrumentを並べる
+
+![Timelineの中でSingle Instrumentを並べている画像](/assets/images/ets2-nav-voicemod/single-instrument-timeline.png)
+
+こちらはTimelineの中でSingle Instrumentを並べています。
+一般的なオーディオ編集ソフトに近い構成かと思います。
+こちらではInstrumentの分割(split)やクロスフェードなども使用できます。
+
+並べるInstrumentはSingle Instrument以外にも使えますが、
+その場合の中身のInstrumentの長さはInstrumentで最長の長さになります。
+1秒と2秒の音声を使ってMulti Instrumentにしている場合、最長の2秒が採用されます。
+
 ## Multi Instrumentを使っての複数パターン作成
+
+![Actionの中にMulti Instrumentを配置した画像](/assets/images/ets2-nav-voicemod/multi-instrument-equality.png)
+
+Actionの中にMulti Instrumentを配置するとこのような画面になります。
+4段に分かれていますが、これは4つの音声/eventを中に配置しているからです。
+
+どこに音声/eventを配置するかというとPlaylistの中に配置します。
+
+![Multi InstrumentのPlaylistの画像](/assets/images/ets2-nav-voicemod/multi-instrument-playlist.png)
+
+画面下にPlaylistという区画があるのでこの中にAssets一覧の音声やEvents一覧のeventをドラッグ&ドロップで配置してください。
+単純に並べた場合、それぞれが等確率で発声されます。
+画像では4つ並べているのでそれぞれが25%の確率で発声されます。
 
 ### 補: Multi Instrumentでの発声確率調整
 
+Multi InstrumentではPlaylistの中の項目に対して違った発声確率を指定することが出来ます。
+
+![Multi InstrumentのPlaylistで発声確率を変えた画像](/assets/images/ets2-nav-voicemod/multi-instrument-probability.png)
+
+この例では`start_hightension`というeventに90%の発声確率を指定し、
+残りの`start_calm`には残りの10%を割り当てています。
+1つ以上のInstrumentに発声確率を指定すれば残りについては自動で均等になるよう設定してくれます。
+
+確率を指定するにはPlaylistの音声部分で右クリックして**Set Play Percentage**を選び、
+その後%の欄に発声確率を入力してください。
+
+![Multi InstrumentでSet Percentageを選んでいる画像](/assets/images/ets2-nav-voicemod/multi-instrument-set-percentage.png)
+
+ちなみに合計で100%に足りなかった場合、足りない部分は発声しなくなるわけではないようです。
+計算するのは面倒なので必要な部分だけ指定して残りはFMOD Studioに任せたほうが楽です。
+
 ## Event Instrumentを使って部分ごとに組み合わせて発声
+
+次の画像は`roundabout_1`event、
+つまり"ラウンドアバウト/ロータリーの1つ目の出口"を案内するeventの画像です。
+
+![roundabout_1の実装画像](/assets/images/ets2-nav-voicemod/roundabout_1.png)
+
+1つ目の`pre_roundabout`Event Instrumentで"_ラウンドアバウト、_"もしくは"_ロータリー、_"と発声し、
+2つ目の`010_roundabout_1_01`Single Instrument(これは単純にAssetsからwavをドラッグ&ドロップすれば作成できます)で
+"_1つ目の出口です_"と発声しています。
+3つ目は"_間違わないでくださいね_"と発声したりしなかったりするeventです(作り方は別項目)。
+
+このような作り方をする場合、1つ目と2つ目の間に発声しない区間を入れたほうが聞きとりやすいです。
+私は音声合成ソフト側で読点(、)を入れてボイスのほうに発声しない区間を入れました。
+もちろん別項のSilence Instrumentを並べても良いと思います。
+
+ちなみに単体のEvent Instrumentは画面左側のEvents一覧から中央にドラッグ&ドロップすれば簡単に作成できます。
 
 ## 長さ0msのSilece Instrumentを使った気まぐれ発声
 
+Silence Instrumentは何も発声しない(=無音を発声する)任意の長さのInstrumentです。
+
+![Actionに配置したSilence Instrumentの図](/assets/images/ets2-nav-voicemod/silence-instrument-action.png)
+
+Silence Instrumentは長さを任意に指定することが出来て、
+完全に何もしない0msに指定することすら出来ます。
+
+![0msのSilence Instrumentの画像](/assets/images/ets2-nav-voicemod/silence-instrument-duration.png)
+
+これをMulti InstrumentのPlaylistに追加することで、
+"きまぐれに何か追加音声を発声する"という動作を実現できます。
+
+![0msのSilence Instrumentを追加したPlaylistの画像](/assets/images/ets2-nav-voicemod/multi-instrument-0ms-playlist.png)
+
+ただしこの動作を実現するためには**Multi Instrumentを入れたeventの種類がaction**でなければいけないことに注意してください。
+なぜならばtimelineだとMulti Instrumentの長さは最長時間が採用されるため、その長さだけ空白時間が出来るからです。
+
 [project-templ]: https://modding.scssoft.com/wiki/Documentation/Engine/Sound/Downloads
 [mod-navi-voice]: https://modding.scssoft.com/wiki/Documentation/Engine/Units/sound_data_voice_navigation
+[fmod-studio-instrument]: https://www.fmod.com/docs/2.01/studio/instrument-reference.html
