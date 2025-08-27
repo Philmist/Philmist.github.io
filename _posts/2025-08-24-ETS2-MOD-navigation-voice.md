@@ -115,19 +115,240 @@ FMODのイベント(event)を使用して呼びだされます。
 
 * [ボイスのZIPファイル](/assets/ETS2_MOD_AnneliVoices.zip)
 
+以下の説明用のFMOD Stuioの画像は全てVersion 2.01.05のものです。
+
 ### STEP 0: テンプレートプロジェクトを解凍する
+
+まず必要な[テンプレートプロジェクト][project-templ]をダウンロードして
+適当な作業ディレクトリに解凍してください。
+以下のような順の階層で解凍されるはずです。
+
+![テンプレートを解凍したルートディレクトリ](/assets/images/ets2-nav-voicemod/template-extract-1.png)
+
+これは作業ディレクトリで解凍した時の状態です。
+`fmod_template_sound_project_143_01`というディレクトリが見えると思います。
+
+![テンプレートを解凍したディレクトリの中の1層目](/assets/images/ets2-nav-voicemod/template-extract-2.png)
+
+解凍した中には`template`というディレクトリが入っています。
+解凍に使用したソフトによってはこのディレクトリが直に作業ディレクトリに表われるかもしれません。
+
+![テンプレートを解凍したディレクトリの中の2層目](/assets/images/ets2-nav-voicemod/template-extract-3.png)
+
+その中の構成はこのようになっています。
+実際は`template.fspro`というファイルが解凍されますが、
+作業をするには別のファイル名(ここでは`anneli.fspro`)に変えておいたほうが混乱しなくなるので無難でしょう。
 
 ### STEP 1: 使用する音声をインポートする
 
+使用する音声をFMOD Studioの左側、Assetsタブの中へドラッグ&ドロップしてください。
+
+![WAVファイルをインポートしたあとの状態](/assets/images/ets2-nav-voicemod/import-wav.png)
+
+インポートしたあとで整理用のフォルダを作ることも出来ますが、
+FMOD Studio側でフォルダを作ったほうが無難です(音声ファイルを右クリックして"Move to New Folder")。
+
+Assetsにインポートした音声は画面左下で再生することが出来ます。
+"Autoplay"をONにすれば選択した時点で再生されます。
+
+![アセットのプレビュー画面](/assets/images/ets2-nav-voicemod/wav-playing.png)
+
+なおWAV以外の形式もFMOD Studioは認識できます(mp3など)。
+
 ### STEP 2: MOD用のbankを新規作成する
+
+今度は画面左側を"Banks"タブに切り替えて、
+右クリックから"New Bank"を選んでMOD用のbankを作成します。
+このbank名はそのままMODで使用するファイルのファイル名の一部になります。
+必ず**英数字記号で長さ12文字以内**にしてください。
+
+bankを作った直後はこのような画面になっているはずです。
+
+![bankを作った直後の画像](/assets/images/ets2-nav-voicemod/new-bank.png)
 
 ### STEP 3: ナビ用のeventを追加してbankに割り当てる
 
-### STEP 4: ビルドして必要なファイルを作る
+Eventsタブに切り替えて右クリックの"New Event"から
+MODで要求されている全てのeventを作ります。
+"New 2D Action"か"New 2D Timeline"のどちらかを選んで作成します。
+必ず**2Dがついているほう**を選んでください。
 
-### STEP 5: 開発中のナビMODをETS2で使えるようにする
+![必要なeventを作成した直後の画像](/assets/images/ets2-nav-voicemod/new-events-unassigned.png)
+
+"#unassigned"とついている状態になっていると思います。
+ここからeventを右クリックして自分の作ったbankに割り当てます。
+**masterには割り当てない**でください。
+なお複数指定することが出来るのでまとめて割り当てたほうが楽です。
+
+![bankにeventを割り当てようとしている画像](/assets/images/ets2-nav-voicemod/assign-to-bank.png)
+
+実際に割り当てると"#unassigned"という表示が消えます。
+
+eventはフォルダを作成して階層構造にすることも出来ますが、
+**ETS2から呼びだされるeventはフォルダの下には作らない**ようにしてください。
+フォルダの下に作ってしまうと呼ぶことが出来ません。
+
+### STEP 4: 作ったeventを発声するbusに割り当てる
+
+画面一番上あたりにあるメニュー一覧から"Window"の下の"Mixer"か"Mixer Routing"のどちらかを選んでください。
+今回は"Mixer"を選んでみます。
+
+![Mixerウィンドウを出した直後の画像](/assets/images/ets2-nav-voicemod/mixer-window-1.png)
+
+画面左側のRoutingタブに注目してください。
+上にmaster bankで定義されているbusが並び、下に自分が作ったbankに入れたeventが並んでいます。
+"Grp"となっている場所のうち"game"を開いてその下にある"navigation"の下に自分の作ったeventをドラッグ&ドロップで移動します。
+そのようにすると次の画像の通りになっているはずです。
+
+![Mixerウィンドウでeventをbusに割り当てた画像](/assets/images/ets2-nav-voicemod/mixer-window-2.png)
+
+なお自分で独自に定義したeventについてはこの作業をしなくてもかまいません。
+自分で独自に定義したeventはETS2用のeventで入れ子にして使われるはずで、
+何も指定しない場合はETS2のeventを発声するbusを使用するからです。
+
+### STEP 5: ナビ音声をeventで発声するようにする
+
+ここがFMOD Studioで一番楽しい部分です。
+
+まずEventsタブでどのeventに音声を割り当てたいのかを選択して中央に表示させます。
+その次にAssetsタブに切り替えて中央の何もない部分にドラッグ&ドロップします。
+
+eventの種類がActionだった場合はこのような画面になるでしょう。
+
+![ActionにSingle Instrumentを作成した場合](/assets/images/ets2-nav-voicemod/action-single-instrument.png)
+
+eventの種類がTimelineだった場合はこれと似たような感じになるはずです。
+ここでは複数並べていますが1回だけドラッグ&ドロップした場合、実際にはSingle Instrumentが1つだけ並んでいると思います。
+
+![TimelineにSingle Instrumentを作成した場合](/assets/images/ets2-nav-voicemod/timeline-single-instrument.png)
+
+他に[どのような手法でeventをいじれるか](#event-howto)については別項目にしてあります。
+
+なおevent一覧では自分用のeventを整理するためのフォルダを作成することが出来ます(画面一番下の"New Folder"、名前変更は選択した状態でF2)。
+繰り返しになりますが**ETS2から呼ばれるeventはフォルダの中に入れない**でください。
+
+### STEP 6: ビルドして必要なファイルを作る
+
+FMOD Studioでの作業はこれが最後になります。
+modに必要なファイルをビルドして作成します。
+
+画面左上の"File"メニューから"Build..."を選んでください。
+
+![FMOD StudioのメニューでBuildを選ぶ](/assets/images/ets2-nav-voicemod/fmod-build.png)
+
+何もなければプロジェクトファイルのあるディレクトリ(ここでは`anneli.fspro`があった場所)の下にある
+`build`ディレクトリのさらに下の`-`ディレクトリにbankファイルが出来ています。
+
+![ビルドされたbankファイル](/assets/images/ets2-nav-voicemod/bank-files.png)
+
+重要なのは自分の作ったMOD用のbankファイル(ここでは`anneli.bank`)があるかどうかです。
+このファイルはMODで使いますのでどこかにコピーしておきましょう。
+
+もう1つ必要なファイルがあってこちらは"Export GUIDs..."から作成します。
+
+![FMOD StudioのメニューでExport GUIDsを選ぶ](/assets/images/ets2-nav-voicemod/fmod-guid.png)
+
+こちらは先ほどの`build`ディレクトリの中に`GUIDs.txt`というファイルが出来ています。
+
+![エクスポートされたGUIDファイル](/assets/images/ets2-nav-voicemod/guid-files.png)
+
+こちらもMODで使うのでどこかにコピーしておきましょう。
+
+### STEP 7: 開発中のナビMODをETS2で使えるようにする
+
+開発中のMODをETS2で使用するにはフォルダを作成してその中にファイルを入れるのが一般的です。
+マイドキュメントの中のEuro Truck Simulator 2フォルダの中に`mod`フォルダがあります。
+もしなければ`mod`フォルダを作成してください。
+
+その下に自分の作ったMODを入れるためのフォルダを作成します。
+さらにその下に`sound`フォルダを作成し、もうひとつ下に`navigation`フォルダを作成します。
+実際に作ると以下のような構造になるはずです。
+
+![MODフォルダの構造図](/assets/images/ets2-nav-voicemod/mod-folder-structure.png)
+
+これはETS2が内部で使用しているディレクトリ構成と一緒になっています。
+自分で調べてみたい方はETS2のゲームフォルダにある`base.scs`ファイルを専用のツールを使って解凍してみましょう(ETS2のゲームフォルダ内には解凍しないでください)。
+
+MODを使うためにはまずMOD自体の説明を書いたファイルである`manifest.sii`が必要になります。
+自分の作ったMODフォルダの直下(ここでは`navigation-anneli`の中)に以下のような感じのテキストファイル(文字コードはBOMなしUTF-8)を置いてください。
+このファイルがどのような物なのかは[SCS SoftwareのMOD Managerページ](https://eurotrucksimulator2.com/mod_manager.php#using_the_manifest)で解説されています。
+
+```
+SiiNunit
+{
+# ".package_name" does not matter as the dot at the beginning of the file means that this unit is anonymous.
+# Please keep this form to not make any conflicts with other mod packages (name collisions).
+mod_package : .package_name
+{
+
+  # Package version can be any string with any length.
+  package_version: "0.1"
+
+  # Display name can be any string with any length.
+  display_name: "音声ナビ AivisProject:Anneli"
+
+  # Author can be any string with any length.
+  author: "Philmist"
+
+  # Categories is an array of strings.
+  category[]: "sound"
+
+  # Icon inside the root directory of the mod.
+  #icon: "AnneliBanner.jpg"
+
+  # Description file inside the root directory of the mod.
+  #description_file: "mod_description.txt"
+
+  # compatible_versions[]: "1.19.*" # Mod is compatible with 1.19.X..
+}
+}
+```
+
+行の先頭に`#`があるとその行はコメント行であるとみなされます。
+ファイルのコメントには色々書いてありますが**`.package_name`の部分は変えない**でください。
+
+必ず変えなければならないのは`package_version`と`display_name`です。
+`display_name`はMODマネージャーで表示される名前で`package_version`はMODのバージョン番号/名です。
+どちらも文字列で指定してください。`package_version`を日本語で指定するのはやめたほうが良いでしょう。
+
+もしアイコンを作る場合、**横262ピクセル×縦162ピクセルのjpgファイル**を作って`icon`のところで指定し先頭の`#`を消してください。
+このファイルも自分の作ったMODフォルダの直下にある必要があります。
+
+次に`sound`の下の`navigation`フォルダに自分の作ったbankファイルとGUIDsファイルをコピーする必要があります。
+
+自分の作ったbankファイル(ここでは`anneli.bank`)を`言語名_バンク名.bank`という形の名前(ここでは`japanese_anneli.bank`)に変更してコピーし、
+`GUIDs.txt`ファイルを`言語名_バンク名.bank.guids`という形の名前(ここでは`japanese_anneli.bank.guids`)に変更してコピーしてください。
+
+そして同じフォルダ(`navigation`フォルダ)に`言語名_バンク名.sii`(ここでは`japanese_anneli.sii`)というプレーンテキストファイル(文字コードはBOMなしUTF-8)を置いて次のような内容を書いてください。
+
+```
+SiiNunit
+{
+voice_navigation_config : .japanese.anneli.bank
+{
+	pack_name: "日本語 - Anneli (from AIVIS Project)"
+}
+}
+```
+
+`voice_navigation_config`の部分は`.言語名.バンク名.bank`という形の名前を書いてください)。
+再確認になりますがバンク名の部分は英数字で12文字以下にしてください。
+
+`pack_name`の部分はナビゲーションボイスを選択する時に表示されます。
+ゲームの表記に合わせて`日本語 - 話者名 (バリエーション等)`という形にしたほうが良いでしょう。
 
 ### ENJOY!
+
+ここまですれば実際に自分で作った音声ナビMODを使えるようになっているはずです。
+遊んでみて確認しましょう！
+
+なおzipファイルにしておくと直にmodフォルダに解凍せずに入れて遊べるようになっています。
+その場合、`manifest.sii`がある場所の中身を全て選択して圧縮してください。
+
+実際にzipファイルにしたものが以下になります。
+参考にしてください。
+
++ [実際に使用できるMODのzipファイル](/assets/navigation-anneli.zip)
 
 ### ありがちなトラブル
 
@@ -139,15 +360,35 @@ FMODのイベント(event)を使用して呼びだされます。
 mix console `modifier(no_modifier, keyboard.equal?0)`
 ```
 
-#### `manifest.sii`が含まれていない/正しくない
+コンソールを使用すると原因を早期に特定することが出来ます。
 
-#### mod内のファイル名が間違っている/siiファイルでの指定が正しくない
+#### MODマネージャーで有効化できない/表示されない
 
-#### bankの中に必要なeventが足りていない/フォルダの中にETS2から呼ばれるeventを入れている
+表示されない場合は`mod`フォルダの下に自分用のMODフォルダーを作成しているか確認してください。
+有効化できない場合は`manifest.sii`が含まれていないか正しくないことが原因の場合が多いです。
 
-#### (zipファイルにまとめた場合)解凍した時に出てくるものがフォルダだけである
+zipファイルにまとめて使っている場合はzipファイルの構造が間違っています。
+自分用のMODフォルダーを圧縮するのではなく、その下の`manifest.sii`などをまとめて圧縮してください。
 
-# FMOD Studioでの音の出し方いろいろ
+#### 音声ナビの一覧に表示されない
+
+MOD内のファイル名が間違っているかsiiファイルでの指定が正しくないです。
+
+MODのファイル名は`言語名_バンク名.bank`などですが、
+siiファイル内での指定は`.言語名.バンク名.bank`で`_`と`.`が入れかわっている場所があります。
+
+また別の場合としてバンク名が12文字より長い場合があります。
+バンク名は英数字で12文字以下にしてください。
+
+#### プレビュー(や使用)しても別なナビの音声が再生される
+
+bankの中に必要なeventが足りていなかったり、
+フォルダの中にETS2から呼ばれるeventを入れている場合に発生します。
+
+必要なイベントがちゃんと必要な場所に名前を間違えず配置されているか確認してください。
+`speed_signal`event(速度警告音)は忘れられがちです。
+
+# FMOD Studioでの音の出し方いろいろ {#event-howto}
 
 ここではFMOD Studioでの音の出し方にどういう手法があるかを記していきます。
 手法がわかればナビボイスの台本にも幅が出るかと思います。
@@ -255,7 +496,9 @@ Multi InstrumentではPlaylistの中の項目に対して違った発声確率�
 私は音声合成ソフト側で読点(、)を入れてボイスのほうに発声しない区間を入れました。
 もちろん別項のSilence Instrumentを並べても良いと思います。
 
-ちなみに単体のEvent Instrumentは画面左側のEvents一覧から中央にドラッグ&ドロップすれば簡単に作成できます。
+単体のEvent Instrumentは画面左側のEvents一覧から中央にドラッグ&ドロップすれば簡単に作成できます。
+
+この方法で参照されているeventは一覧で"#referenced"と表示されます。
 
 ## 長さ0msのSilece Instrumentを使った気まぐれ発声
 
@@ -275,6 +518,21 @@ Silence Instrumentは長さを任意に指定することが出来て、
 
 ただしこの動作を実現するためには**Multi Instrumentを入れたeventの種類がaction**でなければいけないことに注意してください。
 なぜならばtimelineだとMulti Instrumentの長さは最長時間が採用されるため、その長さだけ空白時間が出来るからです。
+
+# 使いやすいボイスにするためには
+
+[Wikiのページ][mod-navi-voice]にも解説されていますがいくつか挙げてみます。
+
++ 嘘をつかない
+    + "左かな？いや右ー！"みたいな奴です。事故ります。
++ 一貫した言い方にする
+    + 瞬時に判断しないといけないナビ音声では複数パターンの言い方をすると混乱することがあります。
+    + 重要な部分はあまりバリエーションを多くしないほうがいいでしょう。
++ 忙しくなる部分は長さをおさえる/重要な部分を先に言う
+    + 特に"compound_XXX"は後に別のボイスがつながる関係で長いボイスだと使いづらいです。
+    + "roundabout_X"あたりはロータリーに進入する直前のタイミングなので何番目かを先に知りたいです。
+
+ぜひあなたもお好みの声のナビボイスを作成してみてください。
 
 [project-templ]: https://modding.scssoft.com/wiki/Documentation/Engine/Sound/Downloads
 [mod-navi-voice]: https://modding.scssoft.com/wiki/Documentation/Engine/Units/sound_data_voice_navigation
