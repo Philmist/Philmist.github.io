@@ -305,7 +305,7 @@ mod_package : .package_name
 ```
 
 行の先頭に`#`があるとその行はコメント行であるとみなされます。
-ファイルのコメントには色々書いてありますが**`.package_name`の部分は変えない**でください。
+ファイルのコメントには色々書いてありますが**`.package_name`の部分は12文字以内の他のMODと重ならない英数字**にしてください。
 
 必ず変えなければならないのは`package_version`と`display_name`です。
 `display_name`はMODマネージャーで表示される名前で`package_version`はMODのバージョン番号/名です。
