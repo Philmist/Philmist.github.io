@@ -250,7 +250,7 @@ modに必要なファイルをビルドして作成します。
 
 こちらは先ほどの`build`ディレクトリの中に`GUIDs.txt`というファイルが出来ています。
 
-![エクスポートされたGUIDファイル](/assets/images/ets2-nav-voicemod/guid-files.png)
+![エクスポートされたGUIDファイル](/assets/images/ets2-nav-voicemod/GUID-files.png)
 
 こちらもMODで使うのでどこかにコピーしておきましょう。
 
