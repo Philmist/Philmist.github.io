@@ -271,7 +271,7 @@ modに必要なファイルをビルドして作成します。
 
 MODを使うためにはまずMOD自体の説明を書いたファイルである`manifest.sii`が必要になります。
 自分の作ったMODフォルダの直下(ここでは`navigation-anneli`の中)に以下のような感じのテキストファイル(文字コードはBOMなしUTF-8)を置いてください。
-このファイルがどのような物なのかは[SCS SoftwareのMOD Managerページ](https://eurotrucksimulator2.com/mod_manager.php#using_the_manifest)で解説されています。
+このファイルがどのような物なのかは[SCS SoftwareのMOD Managerページ](https://modding.scssoft.com/wiki/Documentation/Engine/Mod_manager)で解説されています。
 
 ```
 SiiNunit
@@ -300,14 +300,16 @@ mod_package : .package_name
   #description_file: "mod_description.txt"
 
   # compatible_versions[]: "1.19.*" # Mod is compatible with 1.19.X..
+
+  mp_mod_optional: true
 }
 }
 ```
 
 行の先頭に`#`があるとその行はコメント行であるとみなされます。
-ファイルのコメントには色々書いてありますが**`.package_name`の部分は12文字以内の他のMODと重ならない英数字**にしてください。
+**`.package_name`の部分は12文字以内の他のMODと重ならない英数字**にしてください。
 
-必ず変えなければならないのは`package_version`と`display_name`です。
+他に必ず変えなければならないのは`package_version`と`display_name`です。
 `display_name`はMODマネージャーで表示される名前で`package_version`はMODのバージョン番号/名です。
 どちらも文字列で指定してください。`package_version`を日本語で指定するのはやめたほうが良いでしょう。
 
@@ -349,6 +351,8 @@ voice_navigation_config : .japanese.anneli.bank
 参考にしてください。
 
 + [実際に使用できるMODのzipファイル](/assets/navigation-anneli.zip)
+
+もしもSteam Workshopにアップロードしたい場合は[WikiにWorkshopへアップロードするためのチュートリアル](https://modding.scssoft.com/wiki/Tutorials/SCS_Workshop_Uploader/How_to_upload_new_mod%3F)があります。
 
 ### ありがちなトラブル
 
